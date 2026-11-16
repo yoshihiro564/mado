@@ -32,7 +32,7 @@ main{max-width:1080px;margin:0 auto;padding:14px 14px 80px}
 .wcard h3{margin:0 0 3px;font-size:15px;line-height:1.35}
 .wcard .h{font-size:12px;color:var(--sub);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;background:var(--acc2);color:var(--acc);margin:0 4px 3px 0;white-space:nowrap}
-.pill.w{background:var(--warnbg);color:var(--warn)}.pill.g{background:var(--okbg);color:var(--ok)}.pill.k{background:#efe9f6;color:#6a4a8c}
+.pill.w{background:var(--warnbg);color:var(--warn)}.pill.g{background:var(--okbg);color:var(--ok)}.pill.k{background:#efe9f6;color:#6a4a8c}.pill.m{background:#fff3c4;color:#7a5b00}
 .muted{color:var(--sub);font-size:13px}
 .back{background:none;border:0;color:var(--acc);font-size:14px;padding:4px 0 10px;cursor:pointer}
 .hero{border-radius:var(--r);overflow:hidden;position:relative;aspect-ratio:21/9;background:#5d6d78 center/cover;margin-bottom:12px}
@@ -88,7 +88,7 @@ code{background:#eef0ec;padding:1px 5px;border-radius:5px;font-size:13px}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let D={windows:[]},P={photos:[]},F={q:'',pref:'',kind:'',hanica:'',ph:''},tag='すべて';
-const TAGS=['外観','窓口','記入台','申込書','掲示物','駅構内','バスのりば','周辺','その他'];
+const TAGS=['外観','窓口','発行機','記入台','申込書','掲示物','駅構内','バスのりば','周辺','その他'];
 const photosOf=id=>P.photos.filter(p=>p.window===id);
 const heroOf=w=>{const ps=photosOf(w.id);const h=ps.find(p=>p.file.includes(w.hero||'@'))||ps.find(p=>p.tag==='窓口')||ps[0];return h?h.file:''};
 const hpill=h=>`<span class="pill ${h==='全項目'?'g':h==='取扱なし'?'w':'k'}">hanica：${esc(h)}</span>`;
@@ -120,11 +120,11 @@ function viewList(){
   const uniq=k=>[...new Set(all.map(w=>w[k]))];
   let html=`<div class="kpis">
     <div class="kpi"><b>${all.length}</b><span>窓口</span></div>
-    <div class="kpi"><b>${all.filter(w=>w.kind==='直営').length} / ${all.filter(w=>w.kind==='委託').length}</b><span>直営 / 委託</span></div>
+    <div class="kpi"><b>${all.filter(w=>w.kind==='直営').length} / ${all.filter(w=>w.kind==='委託').length} / ${all.filter(w=>w.kind==='発行機').length}</b><span>直営 / 委託 / 発行機</span></div>
     <div class="kpi"><b>${all.filter(w=>w.kukanTeiki).length}</b><span>区間指定券（紙）取扱</span></div>
     <div class="kpi"><b>${new Set(P.photos.map(p=>p.window)).size}</b><span>写真登録済み窓口</span></div></div>
   <div class="toolbar"><input id="q" placeholder="窓口名・市町・キーワードで検索" value="${esc(F.q)}">
-    ${opt('pref',uniq('pref'),'府県：すべて')}${opt('kind',['直営','委託'],'区分：すべて')}${opt('hanica',uniq('hanica'),'hanica：すべて')}
+    ${opt('pref',uniq('pref'),'府県：すべて')}${opt('kind',uniq('kind'),'区分：すべて')}${opt('hanica',uniq('hanica'),'hanica：すべて')}
     <select data-f="ph"><option value="">写真：すべて</option><option value="1" ${F.ph?'selected':''}>写真あり</option></select></div>
   <p class="muted">${ws.length}件表示</p>`;
   let city='';
@@ -132,7 +132,7 @@ function viewList(){
     if(w.city!==city){if(city)html+='</div>';city=w.city;html+=`<div class="city">${esc(w.pref)}　${esc(city)}</div><div class="list">`}
     const h=heroOf(w);
     html+=`<div class="wcard" data-id="${w.id}"><div class="ph" ${h?`style="background-image:url('${h}')"`:''}>${h?'':'写真なし'}</div>
-      <div class="bd"><h3>${esc(w.name)}</h3><span class="pill">${esc(w.kind)}</span>${hpill(w.hanica)}${w.kukanTeiki?'<span class="pill k">紙券定期</span>':''}
+      <div class="bd"><h3>${esc(w.name)}</h3><span class="pill ${w.kind==='発行機'?'m':''}">${esc(w.kind)}</span>${hpill(w.hanica)}${w.kukanTeiki?'<span class="pill k">紙券定期</span>':''}
       <div class="h">${esc(w.hours)}　休：${esc(w.closed)}</div></div></div>`;
   });
   if(city)html+='</div>';
@@ -150,6 +150,7 @@ function viewDetail(w){
   <div class="sec"><h4>基本情報</h4><table class="kv">
     <tr><th>所在</th><td>${esc(w.pref)} ${esc(w.city)}　<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(w.name+' '+w.city)}" target="_blank" rel="noopener">地図で探す</a></td></tr>
     ${w.place?`<tr><th>設置場所</th><td>${esc(w.place)}</td></tr>`:''}
+    ${w.machine?`<tr><th>設置機器</th><td>${esc(w.machine)}</td></tr>`:''}
     <tr><th>区分</th><td>${esc(w.kind)}</td></tr>
     <tr><th>営業時間</th><td>${esc(w.hours)}</td></tr>
     <tr><th>休業日</th><td>${esc(w.closed)}</td></tr>
@@ -158,9 +159,9 @@ function viewDetail(w){
     ${w.note?`<tr><th>備考</th><td>${esc(w.note)}</td></tr>`:''}
     ${w.shared?`<tr><th>併売</th><td>${esc(w.shared)}</td></tr>`:''}
     ${w.checked?`<tr><th>現地確認</th><td>${esc(w.checked)}</td></tr>`:''}
-  </table><p class="muted" style="margin:8px 0 0">出典：<a href="https://www.hankyubus.co.jp/rosen/counter/" target="_blank" rel="noopener">公式サイト 販売窓口一覧</a>（${esc(D.fetched)}時点）</p></div>
+  </table><p class="muted" style="margin:8px 0 0">${w.kind==='発行機'?'出典：現地掲示・撮影写真より':'出典：'}${w.kind==='発行機'?'':`<a href="https://www.hankyubus.co.jp/rosen/counter/" target="_blank" rel="noopener">公式サイト 販売窓口一覧</a>（${esc(D.fetched)}時点）`}</p></div>
   ${w.products?`<div class="sec"><h4>取扱商品（現地確認）</h4>${w.products.map(p=>`<span class="pill">${esc(p)}</span>`).join('')}</div>`:''}
-  ${w.rules?`<div class="sec"><h4>窓口のルール（現地掲示より）</h4><ul class="rules">${w.rules.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>`:''}
+  ${w.rules?`<div class="sec"><h4>取扱い・注意事項（現地掲示より）</h4><ul class="rules">${w.rules.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>`:''}
   <div class="sec"><h4>写真（${ps.length}）</h4>${ps.length?`
     <div class="gal-tags">${tags.map(t=>`<button class="${t===tag?'on':''}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
     <div class="gal">${list.map((p,i)=>`<figure data-i="${i}"><img loading="lazy" src="${esc(p.file)}" alt="${esc(p.caption)}"><figcaption><b>${esc(p.tag)}</b> ${esc(p.caption)}<br>${esc(p.date)}</figcaption></figure>`).join('')}</div>`
