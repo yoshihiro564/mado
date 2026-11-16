@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>販売窓口ポータル｜阪急バス 定期券うりば一覧</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{--bg:#f4f5f2;--card:#fff;--ink:#1d2421;--sub:#5d6862;--line:#e1e4df;--acc:#1f5e8c;--acc2:#e9f1f7;--warn:#b5651d;--warnbg:#fdf2e6;--ok:#2e7d4f;--okbg:#e8f4ec;--r:14px}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+header{position:sticky;top:0;z-index:20;background:#173a55;color:#fff}
+.hd{max-width:1080px;margin:0 auto;padding:10px 14px 0}
+header h1{font-size:16px;margin:0;font-weight:700}
+header small{display:block;font-weight:400;opacity:.75;font-size:11px}
+nav{display:flex;gap:2px;margin-top:6px}
+nav a{color:#cfe0ec;text-decoration:none;font-size:13.5px;padding:8px 12px;border-bottom:3px solid transparent}
+nav a.on{color:#fff;border-color:#7fc0ea;font-weight:700}
+main{max-width:1080px;margin:0 auto;padding:14px 14px 80px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.kpi{background:var(--card);border-radius:var(--r);padding:8px 12px;border:1px solid var(--line)}
+.kpi b{display:block;font-size:21px;font-variant-numeric:tabular-nums}.kpi span{font-size:11px;color:var(--sub)}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.toolbar input,.toolbar select{flex:1;min-width:120px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;font-size:15px;background:#fff}
+.toolbar input{flex-basis:100%}
+.city{font-size:13px;color:var(--sub);margin:16px 2px 6px;font-weight:700}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.wcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;cursor:pointer;display:flex;transition:box-shadow .15s}
+.wcard:hover{box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.wcard .ph{width:92px;flex:none;background:#e4e8e3 center/cover;display:flex;align-items:center;justify-content:center;color:#9aa49e;font-size:11px}
+.wcard .bd{padding:9px 11px;min-width:0}
+.wcard h3{margin:0 0 3px;font-size:15px;line-height:1.35}
+.wcard .h{font-size:12px;color:var(--sub);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;background:var(--acc2);color:var(--acc);margin:0 4px 3px 0;white-space:nowrap}
+.pill.w{background:var(--warnbg);color:var(--warn)}.pill.g{background:var(--okbg);color:var(--ok)}.pill.k{background:#efe9f6;color:#6a4a8c}
+.muted{color:var(--sub);font-size:13px}
+.back{background:none;border:0;color:var(--acc);font-size:14px;padding:4px 0 10px;cursor:pointer}
+.hero{border-radius:var(--r);overflow:hidden;position:relative;aspect-ratio:21/9;background:#5d6d78 center/cover;margin-bottom:12px}
+.hero .ov{position:absolute;inset:auto 0 0 0;padding:30px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff}
+.hero h2{margin:0 0 4px;font-size:20px;line-height:1.3}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.sec h4{margin:0 0 10px;font-size:14px;color:var(--acc)}
+table.kv{width:100%;border-collapse:collapse;font-size:14px}
+table.kv th{text-align:left;width:30%;color:var(--sub);font-weight:500;padding:7px 8px 7px 0;vertical-align:top;border-bottom:1px solid var(--line)}
+table.kv td{padding:7px 0;border-bottom:1px solid var(--line)}
+table.kv tr:last-child th,table.kv tr:last-child td{border:0}
+ul.rules{margin:0;padding-left:1.1em}ul.rules li{margin:3px 0}
+.gal-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.gal-tags button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 12px;font-size:13px;cursor:pointer}
+.gal-tags button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.gal figure{margin:0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:zoom-in}
+.gal img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#eee}
+.gal figcaption{font-size:11.5px;padding:6px 8px;color:var(--sub);line-height:1.4}.gal figcaption b{color:var(--ink);font-weight:600}
+.stops{width:100%;border-collapse:collapse;font-size:13.5px}
+.stops td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}.stops td:first-child{white-space:nowrap;font-weight:700;color:var(--acc)}
+.note{background:var(--warnbg);border-left:4px solid var(--warn);padding:10px 12px;border-radius:8px;font-size:13.5px;margin:8px 0}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;z-index:50;flex-direction:column;align-items:center;justify-content:center;padding:12px}
+#lb.on{display:flex}#lb img{max-width:100%;max-height:78vh;object-fit:contain;border-radius:6px}
+#lb .cap{color:#fff;font-size:13.5px;margin-top:10px;text-align:center;max-width:720px}
+#lb .nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);color:#fff;border:0;font-size:28px;width:44px;height:64px;border-radius:10px;cursor:pointer}
+#lb .prev{left:8px}#lb .next{right:8px}
+#lb .x{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:99px;width:40px;height:40px;font-size:20px;cursor:pointer}
+.btn{border:0;border-radius:10px;padding:10px 14px;font-size:14px;cursor:pointer;background:var(--acc);color:#fff}
+.btn.s{background:#eef0ec;color:var(--ink)}.btn:disabled{opacity:.5}
+.form label{display:block;font-size:12.5px;color:var(--sub);margin:10px 0 4px}
+.form input,.form select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font-size:15px;font-family:inherit;background:#fff}
+.edit{display:grid;gap:12px;margin-top:12px}
+.edit .it{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}
+.edit canvas{width:100%;height:auto;border-radius:8px;touch-action:none;cursor:crosshair;display:block}
+.edit .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.edit .row input,.edit .row select{flex:1;min-width:120px;padding:7px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+pre{background:#1d2421;color:#d8f0e0;padding:10px;border-radius:10px;font-size:12px;overflow:auto;max-height:220px}
+ol.how li{margin:6px 0}
+code{background:#eef0ec;padding:1px 5px;border-radius:5px;font-size:13px}
+@media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}.hero{aspect-ratio:4/3}}
+</style>
+</head>
+<body>
+<header><div class="hd">
+  <h1>販売窓口ポータル<small>阪急バス 定期券うりば・案内所・委託窓口</small></h1>
+  <nav><a href="#" data-v="list">窓口一覧</a><a href="#add" data-v="add">写真登録</a><a href="#help" data-v="help">使い方</a></nav>
+</div></header>
+<main id="app"><p class="muted">読み込み中…</p></main>
+<div id="lb"><button class="x" aria-label="閉じる">✕</button><button class="nav prev">‹</button><img alt=""><div class="cap"></div><button class="nav next">›</button></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let D={windows:[]},P={photos:[]},F={q:'',pref:'',kind:'',hanica:'',ph:''},tag='すべて';
+const TAGS=['外観','窓口','記入台','申込書','掲示物','駅構内','バスのりば','周辺','その他'];
+const photosOf=id=>P.photos.filter(p=>p.window===id);
+const heroOf=w=>{const ps=photosOf(w.id);const h=ps.find(p=>p.file.includes(w.hero||'@'))||ps.find(p=>p.tag==='窓口')||ps[0];return h?h.file:''};
+const hpill=h=>`<span class="pill ${h==='全項目'?'g':h==='取扱なし'?'w':'k'}">hanica：${esc(h)}</span>`;
+
+async function boot(){
+  try{
+    const [a,b]=await Promise.all([fetch('data/windows.json',{cache:'no-cache'}),fetch('data/photos.json',{cache:'no-cache'})]);
+    D=await a.json();P=await b.json();
+  }catch(e){
+    $('#app').innerHTML=`<div class="sec"><h4>データを読み込めませんでした</h4><p>このページはGitHub Pages上で開いてください。パソコンでファイルを直接開くとブラウザの制限で読み込めません（<code>python -m http.server</code> などで確認できます）。</p></div>`;return}
+  route();
+}
+window.addEventListener('hashchange',route);
+function route(){
+  const h=location.hash.slice(1);
+  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.v===(h==='add'||h==='help'?h:'list')));
+  if(h==='add')return viewAdd();
+  if(h==='help')return viewHelp();
+  const w=D.windows.find(x=>x.id===h);
+  if(w){tag='すべて';return viewDetail(w)}
+  viewList();
+}
+
+/* ---------- 一覧 ---------- */
+function viewList(){
+  const all=D.windows;
+  const ws=all.filter(w=>(!F.pref||w.pref===F.pref)&&(!F.kind||w.kind===F.kind)&&(!F.hanica||w.hanica===F.hanica)&&(!F.ph||photosOf(w.id).length)&&(!F.q||(w.name+w.city+w.note+w.hours).includes(F.q)));
+  const opt=(k,vals,label)=>`<select data-f="${k}"><option value="">${label}</option>${vals.map(v=>`<option ${F[k]===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`;
+  const uniq=k=>[...new Set(all.map(w=>w[k]))];
+  let html=`<div class="kpis">
+    <div class="kpi"><b>${all.length}</b><span>窓口</span></div>
+    <div class="kpi"><b>${all.filter(w=>w.kind==='直営').length} / ${all.filter(w=>w.kind==='委託').length}</b><span>直営 / 委託</span></div>
+    <div class="kpi"><b>${all.filter(w=>w.kukanTeiki).length}</b><span>区間指定券（紙）取扱</span></div>
+    <div class="kpi"><b>${new Set(P.photos.map(p=>p.window)).size}</b><span>写真登録済み窓口</span></div></div>
+  <div class="toolbar"><input id="q" placeholder="窓口名・市町・キーワードで検索" value="${esc(F.q)}">
+    ${opt('pref',uniq('pref'),'府県：すべて')}${opt('kind',['直営','委託'],'区分：すべて')}${opt('hanica',uniq('hanica'),'hanica：すべて')}
+    <select data-f="ph"><option value="">写真：すべて</option><option value="1" ${F.ph?'selected':''}>写真あり</option></select></div>
+  <p class="muted">${ws.length}件表示</p>`;
+  let city='';
+  ws.forEach((w,i)=>{
+    if(w.city!==city){if(city)html+='</div>';city=w.city;html+=`<div class="city">${esc(w.pref)}　${esc(city)}</div><div class="list">`}
+    const h=heroOf(w);
+    html+=`<div class="wcard" data-id="${w.id}"><div class="ph" ${h?`style="background-image:url('${h}')"`:''}>${h?'':'写真なし'}</div>
+      <div class="bd"><h3>${esc(w.name)}</h3><span class="pill">${esc(w.kind)}</span>${hpill(w.hanica)}${w.kukanTeiki?'<span class="pill k">紙券定期</span>':''}
+      <div class="h">${esc(w.hours)}　休：${esc(w.closed)}</div></div></div>`;
+  });
+  if(city)html+='</div>';
+  $('#app').innerHTML=html;
+  $('#q').oninput=e=>{F.q=e.target.value.trim();const p=e.target.selectionStart;viewList();$('#q').focus();$('#q').setSelectionRange(p,p)};
+  document.querySelectorAll('select[data-f]').forEach(s=>s.onchange=()=>{F[s.dataset.f]=s.value;viewList()});
+  document.querySelectorAll('.wcard').forEach(c=>c.onclick=()=>{location.hash=c.dataset.id;scrollTo(0,0)});
+}
+
+/* ---------- 詳細 ---------- */
+function viewDetail(w){
+  const ps=photosOf(w.id), tags=['すべて',...new Set(ps.map(p=>p.tag))], list=ps.filter(p=>tag==='すべて'||p.tag===tag), h=heroOf(w);
+  $('#app').innerHTML=`<button class="back">‹ 窓口一覧</button>
+  <div class="hero" ${h?`style="background-image:url('${h}')"`:''}><div class="ov"><h2>${esc(w.name)}</h2><span class="pill">${esc(w.kind)}</span>${hpill(w.hanica)}</div></div>
+  <div class="sec"><h4>基本情報</h4><table class="kv">
+    <tr><th>所在</th><td>${esc(w.pref)} ${esc(w.city)}　<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(w.name+' '+w.city)}" target="_blank" rel="noopener">地図で探す</a></td></tr>
+    ${w.place?`<tr><th>設置場所</th><td>${esc(w.place)}</td></tr>`:''}
+    <tr><th>区分</th><td>${esc(w.kind)}</td></tr>
+    <tr><th>営業時間</th><td>${esc(w.hours)}</td></tr>
+    <tr><th>休業日</th><td>${esc(w.closed)}</td></tr>
+    <tr><th>hanica</th><td>${esc(w.hanica)}</td></tr>
+    <tr><th>区間指定券</th><td>${w.kukanTeiki?'取扱あり':'取扱なし'}</td></tr>
+    ${w.note?`<tr><th>備考</th><td>${esc(w.note)}</td></tr>`:''}
+    ${w.shared?`<tr><th>併売</th><td>${esc(w.shared)}</td></tr>`:''}
+    ${w.checked?`<tr><th>現地確認</th><td>${esc(w.checked)}</td></tr>`:''}
+  </table><p class="muted" style="margin:8px 0 0">出典：<a href="https://www.hankyubus.co.jp/rosen/counter/" target="_blank" rel="noopener">公式サイト 販売窓口一覧</a>（${esc(D.fetched)}時点）</p></div>
+  ${w.products?`<div class="sec"><h4>取扱商品（現地確認）</h4>${w.products.map(p=>`<span class="pill">${esc(p)}</span>`).join('')}</div>`:''}
+  ${w.rules?`<div class="sec"><h4>窓口のルール（現地掲示より）</h4><ul class="rules">${w.rules.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>`:''}
+  <div class="sec"><h4>写真（${ps.length}）</h4>${ps.length?`
+    <div class="gal-tags">${tags.map(t=>`<button class="${t===tag?'on':''}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+    <div class="gal">${list.map((p,i)=>`<figure data-i="${i}"><img loading="lazy" src="${esc(p.file)}" alt="${esc(p.caption)}"><figcaption><b>${esc(p.tag)}</b> ${esc(p.caption)}<br>${esc(p.date)}</figcaption></figure>`).join('')}</div>`
+    :`<p class="muted">まだ写真がありません。<a href="#add" data-w="${w.id}" id="toAdd">写真を登録する</a></p>`}</div>
+  ${w.busstops?`<div class="sec"><h4>バスのりば</h4><p class="muted">${esc(w.busstops.source)}</p><table class="stops">${w.busstops.rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('')}</table></div>`:''}`;
+  $('.back').onclick=()=>{location.hash=''};
+  document.querySelectorAll('.gal-tags button').forEach(b=>b.onclick=()=>{tag=b.dataset.t;viewDetail(w)});
+  document.querySelectorAll('.gal figure').forEach(f=>f.onclick=()=>openLB(list,+f.dataset.i));
+  const ta=$('#toAdd');if(ta)ta.onclick=()=>{addState.window=w.id};
+}
+
+/* ---------- ライトボックス ---------- */
+let LB={list:[],i:0};
+function openLB(list,i){LB={list,i};showLB();$('#lb').classList.add('on')}
+function showLB(){const p=LB.list[LB.i];$('#lb img').src=p.file;$('#lb .cap').textContent=`[${p.tag}] ${p.caption}  ${LB.i+1}/${LB.list.length}`}
+$('#lb .x').onclick=()=>$('#lb').classList.remove('on');
+$('#lb .prev').onclick=()=>{LB.i=(LB.i-1+LB.list.length)%LB.list.length;showLB()};
+$('#lb .next').onclick=()=>{LB.i=(LB.i+1)%LB.list.length;showLB()};
+let tx=0;$('#lb').addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+$('#lb').addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>50)(d>0?$('#lb .prev'):$('#lb .next')).click()});
+document.addEventListener('keydown',e=>{if(!$('#lb').classList.contains('on'))return;if(e.key==='Escape')$('#lb .x').click();if(e.key==='ArrowLeft')$('#lb .prev').click();if(e.key==='ArrowRight')$('#lb .next').click()});
+
+/* ---------- 写真登録（縮小・位置情報削除・ぼかし → ZIP） ---------- */
+const addState={window:'',date:new Date(Date.now()+9*3600e3).toISOString().slice(0,10),items:[]};
+function viewAdd(){
+  $('#app').innerHTML=`<div class="sec form"><h4>写真を登録用に整える</h4>
+   <p class="muted" style="margin-top:0">写真は端末内だけで処理されます（どこにも送信されません）。長辺1280pxに縮小し、位置情報などのメタデータを取り除きます。写っている人や車内の顔は<b>写真の上をなぞって</b>ぼかしてください。</p>
+   <label>窓口</label><select id="aw"><option value="">選択してください</option>${D.windows.map(w=>`<option value="${w.id}" ${addState.window===w.id?'selected':''}>${esc(w.city)}｜${esc(w.name)}</option>`).join('')}</select>
+   <label>撮影日</label><input type="date" id="ad" value="${addState.date}">
+   <label>写真（複数可）</label><input type="file" id="af" accept="image/*" multiple>
+   <div class="edit" id="edit"></div>
+   <div class="row" style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn" id="mk" disabled>ZIPを作成</button><button class="btn s" id="clr">クリア</button></div>
+   <div id="out"></div></div>`;
+  $('#aw').onchange=e=>{addState.window=e.target.value;upd()};
+  $('#ad').onchange=e=>addState.date=e.target.value;
+  $('#af').onchange=async e=>{for(const f of e.target.files)addState.items.push(await loadItem(f));e.target.value='';drawEdit()};
+  $('#clr').onclick=()=>{addState.items=[];drawEdit();$('#out').innerHTML=''};
+  $('#mk').onclick=makeZip;
+  drawEdit();
+}
+function upd(){$('#mk').disabled=!(addState.window&&addState.items.length)}
+function loadItem(file){return new Promise(res=>{const img=new Image();img.onload=()=>{
+  const s=Math.min(1,1280/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(img.src);
+  res({name:file.name,base:c,boxes:[],tag:'窓口',caption:''})};img.src=URL.createObjectURL(file)})}
+function render(it,cv){
+  cv.width=it.base.width;cv.height=it.base.height;const g=cv.getContext('2d');g.drawImage(it.base,0,0);
+  for(const b of it.boxes){const x=Math.min(b[0],b[2]),y=Math.min(b[1],b[3]),w=Math.abs(b[2]-b[0]),h=Math.abs(b[3]-b[1]);if(w<4||h<4)continue;
+    const t=document.createElement('canvas');t.width=Math.max(1,w/16|0);t.height=Math.max(1,h/16|0);t.getContext('2d').drawImage(it.base,x,y,w,h,0,0,t.width,t.height);
+    g.imageSmoothingEnabled=true;g.drawImage(t,0,0,t.width,t.height,x,y,w,h)}
+}
+function drawEdit(){
+  const el=$('#edit');el.innerHTML='';
+  addState.items.forEach((it,i)=>{
+    const d=document.createElement('div');d.className='it';
+    d.innerHTML=`<canvas></canvas><div class="row"><select>${TAGS.map(t=>`<option ${t===it.tag?'selected':''}>${t}</option>`).join('')}</select>
+      <input placeholder="説明" value="${esc(it.caption)}"></div>
+      <div class="row"><button class="btn s" data-a="undo">ぼかしを1つ戻す</button><button class="btn s" data-a="del">この写真を外す</button><span class="muted">ぼかし ${it.boxes.length}か所</span></div>`;
+    el.appendChild(d);
+    const cv=d.querySelector('canvas');render(it,cv);
+    let st=null;const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height]};
+    cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);const p=pt(e);st=[...p,...p];it.boxes.push(st)};
+    cv.onpointermove=e=>{if(!st)return;const p=pt(e);st[2]=p[0];st[3]=p[1];render(it,cv);const g=cv.getContext('2d');g.strokeStyle='#ff3b30';g.lineWidth=3;g.strokeRect(st[0],st[1],st[2]-st[0],st[3]-st[1])};
+    cv.onpointerup=()=>{if(st&&(Math.abs(st[2]-st[0])<6||Math.abs(st[3]-st[1])<6))it.boxes.pop();st=null;drawEdit()};
+    d.querySelector('select').onchange=e=>it.tag=e.target.value;
+    d.querySelector('input').oninput=e=>it.caption=e.target.value;
+    d.querySelector('[data-a=undo]').onclick=()=>{it.boxes.pop();drawEdit()};
+    d.querySelector('[data-a=del]').onclick=()=>{addState.items.splice(i,1);drawEdit()};
+  });
+  upd();
+}
+async function makeZip(){
+  if(!window.JSZip){$('#out').innerHTML='<p class="note">ZIP機能を読み込めませんでした。通信状況を確認してください。</p>';return}
+  const id=addState.window, ymd=addState.date.replace(/-/g,''), zip=new JSZip(), added=[];
+  const used=new Set(P.photos.map(p=>p.file));let n=1;
+  for(const it of addState.items){
+    let file;do{file=`images/${id}/${id}_${ymd}_${String(n++).padStart(2,'0')}.jpg`}while(used.has(file));used.add(file);
+    const cv=document.createElement('canvas');render(it,cv);
+    const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.78));  // canvas経由なのでEXIF・位置情報は含まれない
+    zip.file(file,blob);added.push({window:id,file,tag:it.tag,caption:it.caption,date:addState.date});
+  }
+  const merged={photos:[...P.photos,...added]};
+  zip.file('data/photos.json',JSON.stringify(merged,null,1));
+  const blob=await zip.generateAsync({type:'blob'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`photos_${id}_${ymd}.zip`;a.textContent=`${a.download} をダウンロード`;a.className='btn';a.style.display='inline-block';
+  $('#out').innerHTML=`<div class="note" style="background:var(--okbg);border-color:var(--ok)">${added.length}枚を整えました。ZIPを展開し、中の <code>images</code> と <code>data</code> フォルダをGitHubにアップロードしてください（<a href="#help">手順</a>）。</div>`;
+  $('#out').appendChild(a);a.click();
+  $('#out').insertAdjacentHTML('beforeend',`<p class="muted">photos.json に追加される行：</p><pre>${esc(JSON.stringify(added,null,1))}</pre>`);
+}
+
+/* ---------- 使い方 ---------- */
+function viewHelp(){
+  $('#app').innerHTML=`<div class="sec"><h4>写真を追加する手順</h4><ol class="how">
+   <li>「写真登録」タブで窓口を選び、写真を選ぶ。</li>
+   <li>人・車内の顔・ナンバーなどが写っていたら、写真の上をなぞってぼかす。タグと説明を付ける。</li>
+   <li>「ZIPを作成」→ ダウンロードしたZIPを展開。</li>
+   <li>GitHubのリポジトリ画面で <b>Add file → Upload files</b> を開き、展開した <code>images</code> と <code>data</code> フォルダをまとめてドラッグ。</li>
+   <li>「Commit changes」。1〜2分でこのページに反映されます。</li></ol>
+   <p class="muted">※ <code>data/photos.json</code> は全写真の一覧ごと上書きされます。2人が同時に作業すると片方の追加が消えるので、作業前にこのページを再読み込みしてください。</p></div>
+  <div class="sec"><h4>公開時の注意（このサイトは誰でも見られます）</h4><ul class="rules">
+   <li>人が判別できる写真はぼかすか、載せない。</li>
+   <li>社内事情（委託条件、課題、点検結果など）は書かない。</li>
+   <li>写真の位置情報は登録時に自動で取り除かれます。カメラで撮った元ファイルを直接アップロードしないでください。</li></ul></div>
+  <div class="sec"><h4>窓口情報の更新</h4><p style="margin:0">営業時間などは <code>data/windows.json</code> を編集します。元データは<a href="https://www.hankyubus.co.jp/rosen/counter/" target="_blank" rel="noopener">公式サイトの販売窓口一覧</a>（${esc(D.fetched)}時点）です。</p></div>`;
+}
+boot();
+</script>
+</body>
+</html>
